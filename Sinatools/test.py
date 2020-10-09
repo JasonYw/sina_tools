@@ -2,6 +2,7 @@ import requests
 import re
 import time
 import socket
+import json
 socket.setdefaulttimeout(2)
 
 def set_time(headers_):
@@ -31,6 +32,37 @@ def rf_time(data_str=None,data_str_list=None):
                 data_ =data_.replace(a[0],uid)
                 new_data_str_list.append(data_)
         return new_data_str_list
+
+
+def parse_follow(url):
+    headers={
+        'authority': 'weibo.com',
+        'method': 'GET',
+        'path':'/1842371671/follow?rightmod=1&wvr=6',
+        'scheme': 'https',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'accept-language': 'zh-CN,zh;q=0.9',
+        'cookie': 'SINAGLOBAL=4128908716926.8135.1602076873682; SUHB=0sqA4K-2aIaVAQ; wvr=6; UOR=,,www.sina.com.cn; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WFFCiCXXUA6zymn5OA4l3Ge5JpX5KMhUgL.Fo2RShz0S02cS022dJLoIEnLxK-L1KnLB.qLxK-L1KnLB.qLxK-L1KeL1hnLxK-L1KeL1hykUcvN; ALF=1633791844; SSOLoginState=1602255846; SCF=Apaw2tMwErdlFxptmHvBkH071Hh-B-tf-_2fGAvcU1Han_-CFyK_MVxbO7J4mKf4j_uHz1v6B9JqnQPMdtUEa4k.; SUB=_2A25yhAu2DeRhGedG71AS9y_KzD2IHXVR8Hp-rDV8PUNbmtAKLUHxkW9NUSDQUQv4jWaucoUrIlo3KnvfDl86fj7D; wb_view_log_1842371671=1920*12001; _s_tentry=www.sina.com.cn; Apache=8700353511096.788.1602255850926; ULV=1602255850951:6:6:6:8700353511096.788.1602255850926:1602146230082; webim_unReadCount=%7B%22time%22%3A1602256166566%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22chat_group_notice%22%3A0%2C%22allcountNum%22%3A0%2C%22msgbox%22%3A0%7D',
+        'referer': 'https://www.sina.com.cn/',
+        'sec-fetch-dest': 'document',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-site': 'same-origin',
+        'sec-fetch-user': '?1',
+        'upgrade-insecure-requests': '1',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
+    }
+    headers['path'] =url.replace('https://weibo.com','')
+    headers['cookie'] =rf_time(data_str=headers['cookie'])
+    response =requests.get(url=url,headers=headers)
+    name =re.findall(r'action-data=."uid=(\d+)&nick=([\w_-]+).">',response.text)
+    for i in name:
+        print(i)
+        dict_={}
+        dict_['uid'] =i[0]
+        dict_['nick'] =i[1]
+        f =open('follow_profil.json','a',encoding='utf-8',errors='ignore')
+        f.write(json.dumps(dict_,ensure_ascii='false')+'\n')    
+
 
 def parse_comment(url):
     headers={
@@ -282,7 +314,13 @@ def delete_comment(cid_list):
 
 
 def test():
-    url ='https://weibo.com/comment/outbox?page=1'
-    parse_comment(url)
+    urls =[
+        f'https://weibo.com/p/1005051842371671/myfollow?t=1&cfs=&Pl_Official_RelationMyfollow__93_page={page}#Pl_Official_RelationMyfollow__93'
+        for page in range(1,7)
+    ]
+    for url in urls:
+        parse_follow(url)
+    # url ='https://weibo.com/comment/outbox?page=1'
+    # parse_comment(url)
 if __name__ == "__main__":
     test()
