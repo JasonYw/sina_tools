@@ -5,12 +5,6 @@ import socket
 import json
 socket.setdefaulttimeout(2)
 
-def set_time(headers_):
-    uid =str(time.time()).replace(".","")[:13]
-    a =re.findall(r'time%22%3A(\d+)',headers_['cookie'])[0] #time%22%3A
-    headers_['cookie'] =headers_['cookie'].replace(a,uid)
-    return headers_
-
 def rf_time(data_str=None,data_str_list=None):
     if data_str != None:
         a =re.findall(r'=(\d{13})$',data_str)
@@ -110,9 +104,9 @@ def parse_delweibo(url):
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
     }
     while True:
-        url =rf_time(url)
-        print(url)
-        headers =set_time(headers)
+        date_ =rf_time(data_str_list=[url,headers['cookie']])
+        url =date_[0]
+        headers['cookie'] =date_[1]
         response =requests.get(url=url,headers=headers)
         mid =re.findall(r'mid=\\"(\d+)\\',response.text)
         if mid ==[]:
@@ -139,7 +133,7 @@ def parse_dellikestatue(url):
     }
     while True:
         print(url)
-        headers =set_time(headers)
+        headers['cookie'] =rf_time(data_str=headers['cookie'])
         response =requests.get(url,headers=headers)
         mid_list =re.findall(r'version=mini&qid=heart&mid=(\d+)&loc=(page_\d+_home)&cuslike=1',response.text)
         mid =re.findall(r'version=mini&qid=heart&mid=(\d+)',response.text)
